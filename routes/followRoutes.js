@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middlewares/auth');
 
-const { getFollows } = require('../controllers/followController');
+const { getFollows, saveFollow, unfollow, following, followers } = require('../controllers/followController');
 
 
-// router.post('/createUser', createUser);
+router.post('/follow', auth, saveFollow);
 
-router.get('/getFollows', getFollows);
+router.get('/get-follows', getFollows);
+router.delete('/unfollow/:id', auth, unfollow);
+router.get('/following/:id?/:page?', auth, following);
+router.get('/followers/:id?/:page?', auth, followers);
 
 // router.post('/loginUser', loginUser);
 
