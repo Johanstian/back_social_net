@@ -55,7 +55,6 @@ const createUser = async (req, res) => {
 
         await user_to_save.save();
 
-
         return res.status(201).json({
             status: 'created',
             message: 'Register OK',
@@ -75,7 +74,6 @@ const createUser = async (req, res) => {
 
 const login = async (req, res, next) => {
     try {
-
         //Obtener los parámetros del body (en la petición)
         let params = req.body
         if (!params.email || !params.password) {
@@ -84,41 +82,37 @@ const login = async (req, res, next) => {
                 message: 'Faltan datos por enviar'
             })
         }
-
         //Si existe en base de datos
-        const userBD = await User.findOne({ email: params.email.toLowerCase() });
-        if (!userBD) {
+        const user = await User.findOne({ email: params.email.toLowerCase() });
+        if (!user) {
             return res.status(404).send({
                 status: 'error',
                 message: 'Usuario no encontrado'
             });
         }
-
         //Comprobar la contraseña
-        const validPassword = await bcrypt.compare(params.password, userBD.password);
+        const validPassword = await bcrypt.compare(params.password, user.password);
         if (!validPassword) {
             return res.status(401).send({
                 status: 'error',
                 message: 'Contraseña incorrecta'
             });
         }
-
         //GENERAR TOKEN de autenticación JWT
-        const token = jwtService.createToken(userBD);
-
-
+        const token = jwtService.createToken(user);
         //Respuesta del login exitoso
         return res.status(200).json({
             status: 'success',
             message: 'Inicio de sesión OK',
             token,
-            userBD: {
-                id: userBD._id,
-                name: userBD.name,
-                last_name: userBD.last_name,
-                email: userBD.email,
-                nick: userBD.nick,
-                image: userBD.image,
+            user: {
+                id: user._id,
+                name: user.name,
+                last_name: user.last_name,
+                email: user.email,
+                profession: user.profession,
+                nick: user.nick,
+                image: user.image,
             }
         })
     } catch (error) {
@@ -141,7 +135,6 @@ const profile = async (req, res) => {
                 message: 'Usuario no autenticado'
             });
         }
-
         //Buscar user en db y excluir datos que no mostrar
         const userProfile = await User.findById(userId).select('-password -role -email -__v');
 
@@ -151,16 +144,13 @@ const profile = async (req, res) => {
                 message: 'Usuario no encontrado'
             })
         }
-
         const followInfo = await followThisUser(req.user.userId, userId);
-
         //return info del profile
         return res.status(200).json({
             status: 'success',
             user: userProfile,
             followInfo
         })
-
     } catch (error) {
         console.log('Error al obtener el perfil del usuario', error)
         return res.status(500).send({
@@ -171,7 +161,6 @@ const profile = async (req, res) => {
 }
 
 //Listar los users
-
 const listUsers = async (req, res) => {
     try {
         //Gestionar paginación
@@ -223,7 +212,6 @@ const updateUser = async (req, res) => {
         //Obtener la info del usuario a actualiar
         let userIdentity = req.user;
         let userToUpdate = req.body;
-
         //Eliminar campos que sobran porque no se van a usar
         delete userToUpdate.iat;
         delete userToUpdate.exp;
@@ -266,7 +254,6 @@ const updateUser = async (req, res) => {
                 message: 'Error al actualizar el usuario'
             })
         }
-
         return res.status(200).json({
             status: 'success',
             message: 'Actualizado',
@@ -321,7 +308,7 @@ const uploadAvatar = async (req, res) => {
 
 const getAvatar = async (req, res) => {
     try {
-        const userId = req.params.id; // Asegúrate de que el parámetro de la ruta sea correcto
+        const userId = req.params.id;
         const user = await User.findById(userId).select('image');
 
         if (!user || !user.image) {
@@ -330,12 +317,11 @@ const getAvatar = async (req, res) => {
                 message: 'Usuario no existe o no tiene avatar'
             });
         }
-
-        // return res.status(200).send({
-        //     status: 'success',
-        //     imageUrl: user.image
-        // });
-        return res.redirect(user.image)
+        return res.status(200).send({
+            status: 'success',
+            imageUrl: user.image
+        });
+        // return res.redirect(user.image)
     } catch (error) {
         console.log('Error al obtener avatar', error);
         return res.status(500).send({
@@ -349,16 +335,12 @@ const counters = async (req, res) => {
     try {
         // Obtener el Id del usuario autenticado (token)
         let userId = req.user.userId;
-
-
         // Si llega el id a través de los parámetros en la URL tiene prioridad
         if (req.params.id) {
             userId = req.params.id;
         }
-
         // Obtener el nombre y apellido del usuario
         const user = await User.findById(userId, { name: 1, last_name: 1 });
-
         // Vericar el user
         if (!user) {
             return res.status(404).send({
@@ -366,16 +348,12 @@ const counters = async (req, res) => {
                 message: "Usuario no encontrado"
             });
         }
-
         // Contador de usuarios que yo sigo (o que sigue el usuario autenticado)
         const followingCount = await Follow.countDocuments({ "following_user": userId });
-
         // Contador de usuarios que me siguen a mi (que siguen al usuario autenticado)
         const followedCount = await Follow.countDocuments({ "followed_user": userId });
-
         // Contador de publicaciones del usuario autenticado
         const publicationsCount = await Publication.countDocuments({ "user_id": userId });
-
         // Devolver los contadores
         return res.status(200).json({
             status: "success",
@@ -395,6 +373,5 @@ const counters = async (req, res) => {
         });
     }
 }
-
 
 module.exports = { testUser, getUsers, createUser, login, profile, listUsers, updateUser, uploadAvatar, getAvatar, counters }

@@ -28,13 +28,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    role: {
+    profession: {
         type: String,
-        default: 'role_user',
+        required: true,
     },
     image: {
         type: String,
-        default: 'default_user.png',
+        default: '',
     },
     created_at: {
         type: Date,
