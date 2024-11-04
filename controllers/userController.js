@@ -27,7 +27,7 @@ const getUsers = async (req, res, next) => {
 const createUser = async (req, res) => {
     try {
         let params = req.body;
-        if (!params.name || !params.last_name || !params.nick || !params.email || !params.password) {
+        if (!params.name || !params.last_name || !params.nick || !params.email || !params.password || !params.cellphone) {
             return res.status(400).json({
                 status: 'Error',
                 message: 'Faltan datos por enviar'
@@ -110,6 +110,7 @@ const login = async (req, res, next) => {
                 name: user.name,
                 last_name: user.last_name,
                 email: user.email,
+                cellphone: user.cellphone,
                 profession: user.profession,
                 nick: user.nick,
                 image: user.image,
@@ -206,7 +207,6 @@ const listUsers = async (req, res) => {
 }
 
 //update
-
 const updateUser = async (req, res) => {
     try {
         //Obtener la info del usuario a actualiar
@@ -276,21 +276,18 @@ const uploadAvatar = async (req, res) => {
                 message: 'No incluye la imagen'
             })
         }
-
         const avatarUrl = req.file.path;
         const userAvatar = await User.findByIdAndUpdate(
             req.user.userId,
             { image: avatarUrl },
             { new: true }
         )
-
         if (!userAvatar) {
             return res.status(500).send({
                 status: 'error',
                 message: 'Error al cargar avatar'
             })
         }
-
         return res.status(200).json({
             status: 'success',
             message: 'Actualizado',
