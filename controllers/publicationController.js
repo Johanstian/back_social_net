@@ -216,7 +216,6 @@ const feed = async (req, res) => {
   
       // Número de publicaciones que queremos mostrar por página
       let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 5;
-  
       // Verificar que el usuario autenticado existe y tiene un userId
       if(!req.user || !req.user.userId) {
         return res.status(404).send({
@@ -244,13 +243,11 @@ const feed = async (req, res) => {
         },
         lean: true
       };
-  
       // Consulta a la base de datos con paginate
       const result = await Publication.paginate(
         { user_id: { $in: myFollows.following }},
         options
       );
-  
       // Verificar si se encontraron publicaciones en la BD
       if (!result.docs || result.docs.length <= 0) {
         return res.status(404).send({
